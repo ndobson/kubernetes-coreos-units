@@ -1,26 +1,29 @@
 [Unit]
 Description=Kubernetes Kubelet
 Documentation=https://github.com/GoogleCloudPlatform/kubernetes
-Requires=setup-network-environment.service
-After=setup-network-environment.service
+Requires=kube-minion-install.service
+After=kube-minion-install.service
 
 [Service]
-EnvironmentFile=/etc/network-environment
-EnvironmentFile=/etc/leader
-ExecStartPre=-/usr/bin/rm /opt/bin/kubelet
-ExecStartPre=/usr/bin/curl -L -o /opt/bin/kubelet -z /opt/bin/kubelet https://storage.googleapis.com/kubernetes-release/release/v0.19.3/bin/linux/amd64/kubelet
-ExecStartPre=/usr/bin/chmod +x /opt/bin/kubelet
+EnvironmentFile=/etc/kube-config.env
+ExecStartPre=/usr/bin/mkdir -p /opt/kubernetes/manifests/
 ExecStart=/opt/bin/kubelet \
   --address=0.0.0.0 \
-  --port=10250 \
-  --hostname_override=${DEFAULT_IPV4} \
-  --api_servers=http://${LEADER_ENDPOINT}:9090 \
+  --port=${KUBE_KUBELET_PORT} \
+  --api_servers=${KUBE_MASTER_URLS} \
+  --cloud_provider= \
   --allow_privileged=true \
+  --cluster_dns=${KUBE_CLUSTER_NAMESERVER} \
+  --cluster_domain=${KUBE_CLUSTER_DOMAIN} \
   --logtostderr=true \
+  --config=/opt/kubernetes/manifests/ \
+  --cadvisor_port=${KUBE_CADVISOR_PORT} \
   --healthz_bind_address=0.0.0.0 \
-  --healthz_port=10248
+  --healthz_port=${KUBE_HEALTHZ_PORT}
 Restart=always
 RestartSec=10
+WorkingDirectory=/root/
 
 [X-Fleet]
 Global=true
+MachineMetadata=role=minion

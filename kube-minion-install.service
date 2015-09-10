@@ -1,0 +1,17 @@
+[Unit]
+Description=Download/Install Kubernetes
+Requires=network-online.target
+After=network-online.target
+[Service]
+EnvironmentFile=/etc/proxy.env
+ExecStart=-/usr/bin/mkdir -p /opt/bin
+ExecStart=/usr/bin/wget -nc -P /opt/bin https://storage.googleapis.com/kubernetes-release/release/v1.0.3/bin/linux/amd64/kube-proxy
+ExecStart=/usr/bin/wget -nc -P /opt/bin https://storage.googleapis.com/kubernetes-release/release/v1.0.3/bin/linux/amd64/kubelet
+ExecStart=/usr/bin/chmod +x /opt/bin/kube-proxy
+ExecStart=/usr/bin/chmod +x /opt/bin/kubelet
+RemainAfterExit=yes
+Type=oneshot
+
+[X-Fleet]
+Global=true
+MachineMetadata=role=minion

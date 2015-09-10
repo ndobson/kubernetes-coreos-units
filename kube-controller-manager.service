@@ -5,16 +5,16 @@ Requires=kube-apiserver.service
 After=kube-apiserver.service
 
 [Service]
-ExecStartPre=-/usr/bin/mkdir -p /opt/bin
-ExecStartPre=-/usr/bin/rm /opt/bin/kube-controller-manager
-ExecStartPre=/usr/bin/curl -L -o /opt/bin/kube-controller-manager -z /opt/bin/kube-controller-manager https://storage.googleapis.com/kubernetes-release/release/v0.19.3/bin/linux/amd64/kube-controller-manager
-ExecStartPre=/usr/bin/chmod +x /opt/bin/kube-controller-manager
+EnvironmentFile=/etc/kube-config.env
 ExecStart=/opt/bin/kube-controller-manager \
-  --master=127.0.0.1:9090 \
+  --service_account_private_key_file=/opt/bin/kube-serviceaccount.key \
+  --master=127.0.0.1:${KUBE_MASTER_PORT} \
+  --cloud_provider= \
+  --pod_eviction_timeout=30s \
   --logtostderr=true
 Restart=always
 RestartSec=10
 
 [X-Fleet]
-MachineOf=kube-apiserver.service
-
+Global=true
+MachineMetadata=role=master
